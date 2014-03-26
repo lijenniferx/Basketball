@@ -99,7 +99,7 @@ for x in top_scorers:
 
 pts_per_game=events_per_game('Pts') ##### total points per game
 
-scoring_spread=top_scoring/all_scoring
+scoring_spread=top_scoring/pts_per_game
 
     
     
