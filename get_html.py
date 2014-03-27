@@ -61,7 +61,7 @@ base_url='http://wvustats.com/mbasketball/'
 save_html(base_url)
 
 #####################################
-##### getting all of the relevant game links, saving as html.
+##### getting all of the individual game links, and saving the html from each
 ###################################
 from bs4 import BeautifulSoup
 import re
