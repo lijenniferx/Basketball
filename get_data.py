@@ -14,7 +14,6 @@ import operator
 
 ###########################
 ### some tweakable parameters
-no_of_top=2  ### number of top players to calculate "spread of scoring"
 stat_categories=['Reb','Pts','A','Stl']
 
 
@@ -110,6 +109,7 @@ with open('basketball.pik','wb') as f:
         pickle.dump(opponent_data,f,-1)
         pickle.dump(win_loss,f,-1)
         pickle.dump(home_away,f,-1)
+        pickle.dump(stat_categories,f,-1)
         
 f.close()
 
