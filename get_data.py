@@ -1,5 +1,10 @@
 ##########################################
-#### Building the useful data structures from the basketball html files #####
+#### Building the useful data structures from the basketball html files, and pickles them
+####  player_data: dictionary of player stats per game. Keys are the names of the players
+####  opponent_data: array of aggregate opponent stats per game. 
+####  win_loss: list of 1s and 0s indicating sequence of wins (1) and losses (0)
+####  home_away: list of 1s and 0s indicating sequence of home (1) and away (0) games
+####  
 #########################################
 from bs4 import BeautifulSoup
 import re
@@ -10,15 +15,15 @@ import operator
 ###########################
 ### some tweakable parameters
 no_of_top=2  ### number of top players to calculate "spread of scoring"
-stat_categories=['Reb','Pts','A']
+stat_categories=['Reb','Pts','A','Stl']
 
 
-#### getting the html for the base url
+################################
+#### getting the game outcomes, home/away info, player names
+################################
+
 html=open('basketball.html','r')
 soup=BeautifulSoup(html.read(),'lxml')
-
-
-#### getting the game outcomes
 
 rows=soup.body.find_all('tr')
 win_loss=[]
@@ -31,18 +36,15 @@ for x in rows:
 
 home_away=[1 if x==True else 0 for x in home_away]  #### 1 if the game is at home
 win_loss=[1 if x==True else 0 for x in win_loss]  #### 1 if the game is a win
- 
-
-################################
-##### filling in player data for each game
-#######################
 
 ### getting list of player names
 players=[x.text for x in soup.body.find_all('a',{'href':re.compile('player/d*')})][4:]  
 
-##### getting the stat categories (e.g., Rebounds, Points, Assists)
-list_of_html_files=glob.glob('./*.html')
-cat_soup=BeautifulSoup(open(list_of_html_files[0],'r').read(),'lxml')
+################################
+#### some housekeeping: getting the list of html files for each game, and indices for the stat categories of interest
+##################################
+
+cat_soup=BeautifulSoup(open(glob.glob('./*.html')[0],'r').read(),'lxml')
 categories=[x.text for x in cat_soup.body.find_all('th',{'style':lambda x: x and x.startswith('background')})][:16]
 stats_index=[]
 for x in stat_categories:
@@ -52,54 +54,63 @@ for x in stat_categories:
         raise Exception('You did not enter an acceptable stat category') 
 
 
+################################
+##### filling in player stats and opponent stats for each game
+#######################
+
 ### preallocating the arrays for player data
+no_of_games=len(glob.glob('./[0-9]*.html'))
 player_data=dict()
 for ind in players:
-    player_data[ind]=zeros((3,len(game_links)))  ### rebounds, points, minutes played
+    player_data[ind]=zeros((len(stat_categories),no_of_games))  ### rebounds, points, minutes played
 
+#### preallocating the array for opponent data
+opponent_data=zeros((no_of_games,len(stat_categories)))
 
-### going through each html file, finding the data for each gape
+##### preallocating the array for officials
+officials=[['','',''] for x in range(no_of_games)]
+
+### going through each html file, finding the player data for each game, as well as the aggregate data for the opponents
 game_index=0
-for files in list_of_html_files:
+
+for files in glob.glob('./[0-9]*.html'):
     if len(files)==12:
         html=open(files,'r')
         soup_game=BeautifulSoup(html.read(),'lxml')
-        
-        
-        for all_players in soup_game.findAll('tr'):
-            if all_players.a:  ### our player
-                temp_stats=[x.text for x in all_players.find_all('td')]
+#        soup_game.find(text=re.compile('Officials'))   #### planned code for collecting officials
+#
+#        officials=
+        which_team=0  ### default is to get the second set of aggregate data
+        if soup_game.findAll('tr')[-1].td.text=='West Virginia':
+            which_team=1  #### get the first set of aggregate data
+       
+        '''player data'''
+        for possibilities in soup_game.findAll('tr'):
+            if possibilities.a:  ### our player
+                temp_stats=[x.text for x in possibilities.find_all('td')]
                 player_data[temp_stats[1]][:,game_index]=[temp_stats[x] for x in stats_index]
+            elif possibilities.td:
+                if possibilities.find_all('td',limit=2)[1].text=='Totals':
+                    if which_team==1:                        
+                        temp_stats=[x.text for x in possibilities.find_all('td')]
+                        opponent_data[game_index,:]=[temp_stats[x] for x in stats_index]
+                        which_team=0                                  
+                    elif which_team==0:
+                        which_team=1
         
         game_index+=1    
-    
 
-##### this function calculates total value of each stat per game                                
-def events_per_game(which_stat):
-    events=0
-    for x in player_data:
-        events=events+player_data[x][stat_categories.index(which_stat)]
-    return events
+####################
+### saving files
+##################
 
-##### total rebounds per game
-reb_per_game=events_per_game('Reb')
-
-##### calculate the "scoring spread" for each game (fraction of points produced by the top N scorers, specified by no_of_top)
-scoring=dict()
-for ind in player_data:
-    scoring[ind]=sum(player_data[ind][1,:])
-
-sorted_scoring=array(sorted(scoring.iteritems(), key=operator.itemgetter(1)))  ### sorted list of scorers
-top_scorers=sorted_scoring[-no_of_top:,0]  #### list of top scorers
-
-top_scoring=0;     #### points per game produced by the top scorers
-for x in top_scorers:
-    top_scoring=top_scoring+player_data[x][1]  
+import pickle
+with open('basketball.pik','wb') as f:
+        pickle.dump(player_data,f,-1)
+        pickle.dump(opponent_data,f,-1)
+        pickle.dump(win_loss,f,-1)
+        pickle.dump(home_away,f,-1)
+        
+f.close()
 
 
-pts_per_game=events_per_game('Pts') ##### total points per game
-
-scoring_spread=top_scoring/pts_per_game
-
-    
-    
