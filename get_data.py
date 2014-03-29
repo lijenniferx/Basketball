@@ -14,7 +14,7 @@ import operator
 
 ###########################
 ### some tweakable parameters
-stat_categories=['Reb','Pts','A','Stl']
+stat_categories=['Reb','Pts','A','Stl','3FG','3FGA','FG','FGA','FT','FTA']
 
 
 ################################
