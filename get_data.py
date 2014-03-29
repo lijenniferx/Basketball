@@ -44,7 +44,7 @@ players=[x.text for x in soup.body.find_all('a',{'href':re.compile('player/d*')}
 ##################################
 
 cat_soup=BeautifulSoup(open(glob.glob('./*.html')[0],'r').read(),'lxml')
-categories=[x.text for x in cat_soup.body.find_all('th',{'style':lambda x: x and x.startswith('background')})][:16]
+categories=[x.text for x in cat_soup.body.find_all('th',{'style':lambda x: x.startswith('background')})][:16]
 stats_index=[]
 for x in stat_categories:
     if x in categories:
