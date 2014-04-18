@@ -36,9 +36,9 @@ def cross_validate_Naive_Bayes(Xcont,Xbin,Y,iter_no):
         model_bin=Bmodel.fit(train_Xbin,train_Y)
         
         #### combining the posterior probabilities
-        denominator=[(sum(train_Y)/len(train_Y))**1,(1-sum(train_Y)/len(train_Y))**1] ### probability of each class: P(C)
+        denominator=[(sum(train_Y)/len(train_Y))**1,(1-sum(train_Y)/len(train_Y))**1] ### probability of each outcome: P(C)
         numerator=model_bin.predict_proba(test_Xbin)*model_cont.predict_proba(test_Xcont)  ### posterior probabilities: P(C|Xcont), P(C|Xbin)
-        prediction=array(map(lambda x: x[1]>x[0],numerator/denominator))  ### combining probabilities and selecting the appropriate class
+        prediction=array(map(lambda x: x[1]>x[0],numerator/denominator))  ### combining probabilities and then selecting the appropriate outcome
         
         accuracy.append(sum(abs(prediction-test_Y))/len(test_cv))  ### comparing the predictions with the actual outcomes 
         
