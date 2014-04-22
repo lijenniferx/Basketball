@@ -254,7 +254,7 @@ class MixedNB(BaseNB):
         
         Xbin= []
         for i in range(X.shape[1]):
-            if len(np.unique(X[:,i]))==2:  ### only two classes, binomial
+            if len(np.unique(X[:,i]))<=2:  ### only two classes, binomial
                 Xbin.append(X[:,i])
         
         Xbin=np.array(Xbin).T
@@ -274,10 +274,10 @@ class MixedNB(BaseNB):
             
             ### binomial data
             Xbini = Xbin[y == y_i, :]
-            self.ptrue_[i, :] = np.mean(Xbini, axis=0) ## probability of being 1
+            self.ptrue_[i, :] = np.mean(Xbini, axis=0)+0.001 ## probability of being 1
             
             ## P(C)
-            self.class_prior_[i] = np.float(Xconti.shape[0]) / n_samples
+            self.class_prior_[i] = np.float(Xconti.shape[0]) / n_samples +0.001
         return self
     
     def _joint_log_likelihood(self, X):
@@ -294,7 +294,7 @@ class MixedNB(BaseNB):
         ###### binomial features
         Xbin= []
         for i in range(X.shape[1]):
-            if len(np.unique(X[:,i]))==2:  ### only two classes, binomial
+            if len(np.unique(X[:,i]))<=2:  ### only two classes, binomial
                 Xbin.append(X[:,i])
         
         Xbin=array2d(Xbin).T
