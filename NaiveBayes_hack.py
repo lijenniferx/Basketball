@@ -43,4 +43,5 @@ def cross_validate_Naive_Bayes(Xcont,Xbin,Y,iter_no):
         accuracy.append(sum(abs(prediction-test_Y))/len(test_cv))  ### comparing the predictions with the actual outcomes 
         
     return accuracy
+
         
